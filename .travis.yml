@@ -1,69 +1,35 @@
-language: java
-sudo: false
-
-env: 
-  # Give Maven 1GB of memory to work with
-  - MAVEN_OPTS=-Xmx1024M
-
-jdk:
-  # DS-3384 Oracle JDK 8 has DocLint enabled by default.
-  # Let's use this to catch any newly introduced DocLint issues.
-  - oraclejdk8
-
-## Should we run into any problems with oraclejdk8 on Travis, we may try the following workaround.
-## https://docs.travis-ci.com/user/languages/java#Testing-Against-Multiple-JDKs
-## https://github.com/travis-ci/travis-ci/issues/3259#issuecomment-130860338
-#addons:
-#  apt:
-#    packages:
-#      - oracle-java8-installer
-
-# Install prerequisites for building Mirage2 more rapidly
 before_install:
-  - wget https://dl.dropboxusercontent.com/u/7897865/apache-maven-3.3.9.zip
-  - unzip -qq apache-maven-3.3.9.zip
-  - export M2_HOME=$PWD/apache-maven-3.3.9
-  - export PATH=$M2_HOME/bin:$PATH
-  # Remove outdated settings.xml from Travis builds. Workaround for https://github.com/travis-ci/travis-ci/issues/4629
-  - rm ~/.m2/settings.xml
-  # Install Node.js 6.5.0 & print version info
-  - nvm install 6.5.0
-  - node --version
-  # Install npm 3.10.8 & print version info
-  - npm install -g npm@3.10.8
-  - npm --version
-  # Install Bower
-  - npm install -g bower
-  # Install Grunt & print version info
-  - npm install -g grunt && npm install -g grunt-cli
-  - grunt --version
-  # Print ruby version info (should be installed)
-  - ruby -v
-  # Install Sass & print version info
-  - gem install sass
-  - sass -v
-  # Install Compass & print version info
-  - gem install compass
-  - compass version
-
-# Skip install stage, as we'll do it below
-install: "echo 'Skipping install stage, dependencies will be downloaded during build and test stages.'"
-
-# Two stage Build and Test
-# 1. Install & Unit Test APIs
-# 2. Assemble DSpace
+- wget https://dl.dropboxusercontent.com/u/7897865/apache-maven-3.3.9.zip
+- unzip -qq apache-maven-3.3.9.zip
+- export M2_HOME=$PWD/apache-maven-3.3.9
+- export PATH=$M2_HOME/bin:$PATH
+- rm ~/.m2/settings.xml
+- nvm install 6.5.0
+- node --version
+- npm install -g npm@3.10.8
+- npm --version
+- npm install -g bower
+- npm install -g grunt && npm install -g grunt-cli
+- grunt --version
+- ruby -v
+- gem install sass
+- sass -v
+- gem install compass
+- compass version
+env:
+- MAVEN_OPTS=-Xmx1024M
+install: echo 'Skipping install stage, dependencies will be downloaded during build and test stages.'
+jdk:
+- oraclejdk8
+language: java
+notifications:
+  email: false
+  slack:
+    rooms: flakycov:U2MeVOPjdi4up1U793ubeIUZ
+    template:
+    - Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository}@%{branch} by %{author} %{result} in %{duration}
+    - 'dashbot: %{repository_name} %{build_id}'
 script:
-  # 1. [Install & Unit Test] Check source code licenses and run source code Unit Tests
-  #        license:check => Validate all source code license headers
-  #        -Dmaven.test.skip=false => Enable DSpace Unit Tests
-  #        -DskipITs=false         => Enable DSpace Integration Tests
-  #        -P !assembly            => Skip normal assembly (as it can be memory intensive)
-  #        -B => Maven batch/non-interactive mode (recommended for CI)
-  #        -V => Display Maven version info before build
-  #        -Dsurefire.rerunFailingTestsCount=2 => try again for flakey tests, and keep track of/report on number of retries
-  - "mvn clean install license:check -Dmaven.test.skip=false -DskipITs=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2"
-  # 2. [Assemble DSpace] Ensure assembly process works (from [src]/dspace/), including Mirage 2
-  #        -Dmirage2.on=true => Build Mirage2
-  #        -Dmirage2.deps.included=false => Don't include Mirage2 build dependencies (We installed them in before_install)
-  #        -P !assembly => SKIP the actual building of [src]/dspace/dspace-installer (as it can be memory intensive)
-  - "cd dspace && mvn package -Dmirage2.on=true -Dmirage2.deps.included=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2"
+- mvn clean install license:check -Dmaven.test.skip=false -DskipITs=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
+- cd dspace && mvn package -Dmirage2.on=true -Dmirage2.deps.included=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
+sudo: false
