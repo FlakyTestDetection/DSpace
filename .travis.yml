@@ -12,9 +12,9 @@ before_install:
 - npm install -g grunt && npm install -g grunt-cli
 - grunt --version
 - ruby -v
-- gem install sass
+- gem install sass -v 3.3.14
 - sass -v
-- gem install compass
+- gem install compass -v 1.0.1
 - compass version
 env:
 - MAVEN_OPTS=-Xmx1024M
